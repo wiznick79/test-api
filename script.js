@@ -1,12 +1,14 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import axios from 'axios'
+import prettyBytes from 'pretty-bytes'
+import setupEditors from './editor'
 
 const form = document.querySelector('[data-form]')
 const queryParamsContainer = document.querySelector('[data-query-params]')
 const requestHeadersContainer = document.querySelector('[data-request-headers]')
 const keyValueTemplate = document.querySelector('[data-key-value-template]')
-const responseHeadersContaner = document.querySelector('[data-response-headers]')
+const responseHeadersContainer = document.querySelector('[data-response-headers]')
 
 document.querySelector('[data-add-query-param-btn]').addEventListener('click', () => {
     queryParamsContainer.append(createKeyValuePair())
@@ -35,21 +37,32 @@ axios.interceptors.response.use(updateEndTime, e => {
     return Promise.reject(updateEndTime(e.response))
 })
 
+const { requestEditor, updateResponseEditor } = setupEditors()
 
-form.addEventListener('submist', e => {
+form.addEventListener('submit', e => {
     e.preventDefault()
+
+    let data
+    try {
+        data = JSON.parse(requestEditor.state.doc.toString() || null)
+    } catch (e) {
+        alert('malformed JSON data')
+        return
+    }
+
     axios({
         url: document.querySelector('[data-url]').value,
         method: document.querySelector('[data-method]').value,
         params: keyValuePairsToObjects(queryParamsContainer),
-        headers: keyValuePairsToObjects(requestHeadersContainer)
+        headers: keyValuePairsToObjects(requestHeadersContainer),
+        data
     })
     .catch(e => e)
     .then(response => {
         console.log(response)
         document.querySelector('[data-response-section]').classList.remove('d-none')
         updateResponseDetails(response)
-        // updateResponseEditor(response.data)
+        updateResponseEditor(response.data)
         updateResponseHeaders(response.headers)
     })
 })
@@ -76,10 +89,13 @@ function keyValuePairsToObjects(container) {
 function updateResponseDetails(response) {
     document.querySelector('[data-status]').textContent = response.status
     document.querySelector('[data-time]').textContent = response.customData.time
+    document.querySelector('[data-size]').textContent = prettyBytes(
+        JSON.stringify(response.data).length + JSON.stringify(response.headers).length
+    )
 }
 
 function updateResponseHeaders(headers) {
-    responseHeadersContaner.innerHTML = ''
+    responseHeadersContainer.innerHTML = ''
     Object.entries(headers).forEach(([key,value]) => {
         const keyElement = document.createElement('div')
         keyElement.textContent = key
