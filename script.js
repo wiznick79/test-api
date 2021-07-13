@@ -10,62 +10,7 @@ const requestHeadersContainer = document.querySelector("[data-request-headers]")
 const keyValueTemplate = document.querySelector("[data-key-value-template]");
 const responseHeadersContainer = document.querySelector("[data-response-headers]");
 
-document.querySelector("[data-add-query-param-btn]").addEventListener("click", () => {
-    queryParamsContainer.append(createKeyValuePair());
-});
-
-document.querySelector("[data-add-request-header-btn]").addEventListener("click", () => {
-    requestHeadersContainer.append(createKeyValuePair());
-});
-
-queryParamsContainer.append(createKeyValuePair());
-requestHeadersContainer.append(createKeyValuePair());
-
-axios.interceptors.request.use((request) => {
-    request.customData = request.customData || {};
-    request.customData.startTime = new Date().getTime();
-    return request;
-})
-
-function updateEndTime(response) {
-    response.customData = response.customData || {};
-    response.customData.time = new Date().getTime() - response.config.customData.startTime;
-    return response;
-}
-
-axios.interceptors.response.use(updateEndTime, (e) => {
-    return Promise.reject(updateEndTime(e.response));
-})
-
 const { requestEditor, updateResponseEditor } = setupEditors();
-
-form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    let data;
-    try {
-        data = JSON.parse(requestEditor.state.doc.toString() || null);
-    } catch (e) {
-        alert("malformed JSON data");
-        return;
-    }
-
-    axios({
-        url: document.querySelector("[data-url]").value,
-        method: document.querySelector("[data-method]").value,
-        params: keyValuePairsToObjects(queryParamsContainer),
-        headers: keyValuePairsToObjects(requestHeadersContainer),
-        data
-    })
-    .catch((e) => e)
-    .then((response) => {
-        console.log(response);
-        document.querySelector("[data-response-section]").classList.remove("d-none");
-        updateResponseDetails(response);
-        updateResponseEditor(response.data);
-        updateResponseHeaders(response.headers);
-    });
-})
 
 function createKeyValuePair() {
     const element = keyValueTemplate.content.cloneNode(true);
@@ -107,3 +52,58 @@ function updateResponseHeaders(headers) {
         responseHeadersContainer.append(valueElement);
     });
 }
+
+function updateEndTime(response) {
+    response.customData = response.customData || {};
+    response.customData.time = new Date().getTime() - response.config.customData.startTime;
+    return response;
+}
+
+document.querySelector("[data-add-query-param-btn]").addEventListener("click", () => {
+    queryParamsContainer.append(createKeyValuePair());
+});
+
+document.querySelector("[data-add-request-header-btn]").addEventListener("click", () => {
+    requestHeadersContainer.append(createKeyValuePair());
+});
+
+queryParamsContainer.append(createKeyValuePair());
+requestHeadersContainer.append(createKeyValuePair());
+
+axios.interceptors.request.use((request) => {
+    request.customData = request.customData || {};
+    request.customData.startTime = new Date().getTime();
+    return request;
+});
+
+axios.interceptors.response.use(updateEndTime, (e) => {
+    return Promise.reject(updateEndTime(e.response));
+})
+
+form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    let data;
+    try {
+        data = JSON.parse(requestEditor.state.doc.toString() || null);
+    } catch (e) {
+        alert("malformed JSON data");
+        return;
+    }
+
+    axios({
+        url: document.querySelector("[data-url]").value,
+        method: document.querySelector("[data-method]").value,
+        params: keyValuePairsToObjects(queryParamsContainer),
+        headers: keyValuePairsToObjects(requestHeadersContainer),
+        data
+    })
+    .catch((e) => e)
+    .then((response) => {
+        // console.log(response);
+        document.querySelector("[data-response-section]").classList.remove("d-none");
+        updateResponseDetails(response);
+        updateResponseEditor(response.data);
+        updateResponseHeaders(response.headers);
+    });
+})
