@@ -12,16 +12,16 @@ const responseHeadersContainer = document.querySelector("[data-response-headers]
 
 document.querySelector("[data-add-query-param-btn]").addEventListener("click", () => {
     queryParamsContainer.append(createKeyValuePair());
-})
+});
 
 document.querySelector("[data-add-request-header-btn]").addEventListener("click", () => {
     requestHeadersContainer.append(createKeyValuePair());
-})
+});
 
 queryParamsContainer.append(createKeyValuePair());
 requestHeadersContainer.append(createKeyValuePair());
 
-axios.interceptors.request.use(request => {
+axios.interceptors.request.use((request) => {
     request.customData = request.customData || {};
     request.customData.startTime = new Date().getTime();
     return request;
@@ -57,9 +57,9 @@ form.addEventListener("submit", (e) => {
         headers: keyValuePairsToObjects(requestHeadersContainer),
         data
     })
-    .catch(e => e)
-    .then(response => {
-        console.log(response)
+    .catch((e) => e)
+    .then((response) => {
+        console.log(response);
         document.querySelector("[data-response-section]").classList.remove("d-none");
         updateResponseDetails(response);
         updateResponseEditor(response.data);
@@ -81,7 +81,9 @@ function keyValuePairsToObjects(container) {
         const key = pair.querySelector("[data-key]").value;
         const value = pair.querySelector("[data-value]").value;
 
-        if (key === "") return data;
+        if (key === "") {
+            return data;
+        }
         return { ...data, [key]: value };
     }, {});
 }
@@ -95,7 +97,7 @@ function updateResponseDetails(response) {
 }
 
 function updateResponseHeaders(headers) {
-    responseHeadersContainer.innerHTML = ""
+    responseHeadersContainer.innerHTML = "";
     Object.entries(headers).forEach(([key,value]) => {
         const keyElement = document.createElement("div");
         keyElement.textContent = key;
