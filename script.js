@@ -106,4 +106,4 @@ form.addEventListener("submit", (e) => {
         updateResponseEditor(response.data);
         updateResponseHeaders(response.headers);
     });
-})
+});
