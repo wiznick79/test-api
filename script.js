@@ -78,7 +78,7 @@ axios.interceptors.request.use((request) => {
 
 axios.interceptors.response.use(updateEndTime, (e) => {
     return Promise.reject(updateEndTime(e.response));
-})
+});
 
 form.addEventListener("submit", (e) => {
     e.preventDefault();
